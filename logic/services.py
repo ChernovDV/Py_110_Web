@@ -1,5 +1,9 @@
 import json
 import os
+
+from django.contrib.auth import get_user
+
+
 from store.models import DATABASE
 
 # Фильтр товара
@@ -113,4 +117,53 @@ def remove_from_cart(id_product: str) -> bool:
     # TODO Не забываем записать обновленные данные cart в 'cart.json'
     with open('cart.json', mode='w', encoding='utf-8') as f:
         json.dump(cart, f)
+    return True
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+def view_in_wishlist(request) -> dict:
+    """
+    Просматривает содержимое wishlist.json
+
+    :return: Содержимое 'wishlist.json'
+    """
+    if os.path.exists('wishlist.json'):  # Если файл существует
+        with open('wishlist.json', encoding='utf-8') as f:
+            return json.load(f)
+
+    user = get_user(request).get_username
+    wishlist = {user: {'products': []}}  # Создаём пустой лист
+    with open('wishlist.json', mode='x', encoding='utf-8') as f:   # Создаём файл и записываем туда пустую корзину
+        json.dump(wishlist, f)
+
+    return wishlist
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+def add_to_wishlist(id_product: str) -> bool:
+    wishlist = view_in_wishlist()  # Текущая корзина
+
+    # TODO Проверьте, а существует ли такой товар в листе, если нет, то перед тем как его добавить - проверьте есть ли такой id_product товара в вашей базе данных DATABASE, чтобы уберечь себя от добавления несуществующего товара.
+    if id_product not in DATABASE:
+        return False
+    # TODO Если товар существует, то увеличиваем его количество на 1
+    if id_product not in wishlist['products']:
+        wishlist['products'][id_product] = 1   # Если товара еще нет в корзине, добавляем его с количеством 1
+    else:
+        wishlist['products'][id_product] += 1  # Иначе +1
+    # TODO Не забываем записать обновленные данные wishlist в 'wishlist.json'. Так как именно из этого файла мы считываем данные и если мы не запишем изменения, то считать измененные данные не получится.
+    with open('wishlist.json', mode='w', encoding='utf-8') as f:
+        json.dump(wishlist, f)
+    return True
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#
+def remove_from_wishlist(id_product: str) -> bool:
+    wishlist = view_in_wishlist()  # TODO Помните, что у вас есть уже реализация просмотра листа,
+
+    # TODO Проверьте, а существует ли такой товар в листе, если нет, то возвращаем False.
+    if id_product not in wishlist["products"]:
+        return False  # Товара нет в листе, удаление невозможно
+    # TODO Если существует товар, то удаляем ключ 'id_product' у cart['products'].
+    del wishlist["products"][id_product]  # Удаляем товар из листа
+    # TODO Не забываем записать обновленные данные wishlist в 'wishlist.json'
+    with open('wishlist.json', mode='w', encoding='utf-8') as f:
+        json.dump(wishlist, f)
     return True
