@@ -34,9 +34,9 @@
 						    <tbody>
 							{% for product in products %}
 						      <tr class="text-center">
-						        <td class="product-remove"><a href="{% url 'store:cart_remove_view' product.id %}"><span class="ion-ios-close"></span></a></td>
+						        <td class="product-remove"><a href="{%url 'wishlist:wishlist_remove_view' product.id %}"><span class="ion-ios-close"></span></a></td>
 
-						        <td class="image-prod"><a href="{% url 'store:cart_remove_view' product.id %}">
+						        <td class="image-prod"><a href="{% url 'store:products_page_view' product.html %}">
 									<div class="img" style="background-image:url({% static product.url %});"></div>
 								</a></td>
 						        
@@ -45,7 +45,11 @@
 						        	<p>{{product.description}}</p>
 						        </td>
 
-						        <td class="price"><del>{{product.price_after}}</del> {{product.price_total}}</td>
+						        <td class="price">
+									{% if product.discount %}
+									<del>{{product.price_before}}</del>
+									{% endif %}
+									{{product.price_after}}</td>
 						      </tr><!-- END TR-->
 							{% endfor %}
 						    </tbody>
